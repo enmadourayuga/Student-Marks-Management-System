@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Marks Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-50 p-6 text-gray-800">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">Manage Student Marks</h2>
+            <form id="marksForm" class="grid grid-cols-3 gap-4">
+                <input type="hidden" id="recordId">
+                <input type="text" id="name" placeholder="Student Name" required class="border p-2 rounded">
+                <input type="date" id="dob" required class="border p-2 rounded">
+                <input type="text" id="semester" placeholder="Semester" required class="border p-2 rounded">
+                <select id="subject" required class="border p-2 rounded">
+                    <option value="">Select Subject</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Computer Science">Computer Science</option>
+                </select>
+                <input type="number" id="marks" placeholder="Marks" required class="border p-2 rounded">
+                <input type="number" id="out_of" placeholder="Out Of Marks" required class="border p-2 rounded">
+                <div class="col-span-3">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold">Save Record</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow flex gap-4">
+            <input type="text" id="f_name" placeholder="Filter Name" class="border p-2 rounded w-full" oninput="renderTable()">
+            <input type="text" id="f_sem" placeholder="Filter Semester" class="border p-2 rounded w-full" oninput="renderTable()">
+            <input type="text" id="f_sub" placeholder="Filter Subject" class="border p-2 rounded w-full" oninput="renderTable()">
+            <select id="f_status" class="border p-2 rounded w-full" onchange="renderTable()">
+                <option value="All">All Status</option>
+                <option value="Pass">Pass</option>
+                <option value="Fail">Fail</option>
+            </select>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <div class="flex justify-between mb-4">
+                <h2 class="text-xl font-bold">Main Report</h2>
+                <div>
+                    <button onclick="moveData()" class="bg-indigo-600 text-white px-4 py-2 rounded mr-2">Move Selected</button>
+                    <button onclick="exportPDF()" class="bg-red-600 text-white px-4 py-2 rounded">Export PDF</button>
+                </div>
+            </div>
+            <table class="w-full border text-sm text-left">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('name')">Name ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('dob')">DOB ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('semester')">Semester ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('subject')">Subject ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('marks')">Marks ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('out_of')">Out Of ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('percentage')">% ↕</th>
+                        <th class="p-2 border cursor-pointer" onclick="setSort('status')">Status ↕</th>
+                        <th class="p-2 border">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+                <tfoot class="bg-gray-100 font-bold">
+                    <tr>
+                        <td colspan="5" class="p-2 border text-right">Grand Total:</td>
+                        <td id="tMarks" class="p-2 border">0</td>
+                        <td id="tOutOf" class="p-2 border">0</td>
+                        <td id="tPct" colspan="3" class="p-2 border">0%</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div class="flex justify-between items-center mt-4">
+                <button onclick="changePage(-1)" class="bg-gray-200 px-4 py-1 rounded">Previous</button>
+                <span id="pageIndicator">Page 1</span>
+                <button onclick="changePage(1)" class="bg-gray-200 px-4 py-1 rounded">Next</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">Isolated Records</h2>
+            <table class="w-full border text-sm text-left">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border">Name</th>
+                        <th class="p-2 border">Semester</th>
+                        <th class="p-2 border">Subject</th>
+                        <th class="p-2 border">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="movedBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let dbData = [];
+        let movedData = [];
+        let sortCol = null, sortAsc = true;
+        let page = 1;
+        const perPage = 5;
+
+        // Fetch & Render
+        async function loadData() {
+            const res = await fetch('/api/marks');
+            dbData = await res.json();
+            renderTable();
+        }
+
+        function renderTable() {
+            let filtered = dbData.filter(d => 
+                d.name.toLowerCase().includes(document.getElementById('f_name').value.toLowerCase()) &&
+                d.semester.toLowerCase().includes(document.getElementById('f_sem').value.toLowerCase()) &&
+                d.subject.toLowerCase().includes(document.getElementById('f_sub').value.toLowerCase()) &&
+                (document.getElementById('f_status').value === 'All' || d.status === document.getElementById('f_status').value)
+            );
+
+            if (sortCol) {
+                filtered.sort((a, b) => {
+                    let vA = a[sortCol], vB = b[sortCol];
+                    if (typeof vA === 'string') return sortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
+                    return sortAsc ? vA - vB : vB - vA;
+                });
+            }
+
+            // Totals
+            let tM = 0, tO = 0;
+            filtered.forEach(d => { tM += d.marks; tO += d.out_of; });
+            document.getElementById('tMarks').innerText = tM;
+            document.getElementById('tOutOf').innerText = tO;
+            document.getElementById('tPct').innerText = tO ? ((tM/tO)*100).toFixed(2) + '%' : '0%';
+
+            // Pagination
+            const maxPage = Math.ceil(filtered.length / perPage) || 1;
+            if (page > maxPage) page = maxPage;
+            document.getElementById('pageIndicator').innerText = `Page ${page} of ${maxPage}`;
+            let paged = filtered.slice((page - 1) * perPage, page * perPage);
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            paged.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 border"><input type="checkbox" class="row-cb" data-id="${row.id}" data-status="${row.status}" onchange="checkCbLogic(this)"></td>
+                        <td class="p-2 border">${row.name}</td>
+                        <td class="p-2 border">${row.dob}</td>
+                        <td class="p-2 border">${row.semester}</td>
+                        <td class="p-2 border">${row.subject}</td>
+                        <td class="p-2 border">${row.marks}</td>
+                        <td class="p-2 border">${row.out_of}</td>
+                        <td class="p-2 border">${row.percentage}%</td>
+                        <td class="p-2 border font-bold ${row.status === 'Pass' ? 'text-green-600' : 'text-red-600'}">${row.status}</td>
+                        <td class="p-2 border space-x-2">
+                            <button onclick="editRow(${row.id})" class="text-blue-600">Edit</button>
+                            <button onclick="deleteRow(${row.id})" class="text-red-600">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // Form Submit
+        document.getElementById('marksForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('recordId').value || null,
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                semester: document.getElementById('semester').value,
+                subject: document.getElementById('subject').value,
+                marks: parseFloat(document.getElementById('marks').value),
+                out_of: parseFloat(document.getElementById('out_of').value)
+            };
+
+            const res = await fetch('/api/marks', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.error) alert(data.error);
+            else { document.getElementById('marksForm').reset(); loadData(); }
+        };
+
+        // Actions
+        async function deleteRow(id) {
+            if (confirm("Delete this record?")) {
+                await fetch(`/api/marks/${id}`, {method: 'DELETE'});
+                loadData();
+            }
+        }
+
+        function editRow(id) {
+            const r = dbData.find(x => x.id === id);
+            document.getElementById('recordId').value = r.id;
+            ['name','dob','semester','subject','marks','out_of'].forEach(k => document.getElementById(k).value = r[k]);
+        }
+
+        function setSort(col) {
+            sortAsc = (sortCol === col) ? !sortAsc : true;
+            sortCol = col;
+            renderTable();
+        }
+
+        function changePage(dir) {
+            page = Math.max(1, page + dir);
+            renderTable();
+        }
+
+        // Checkbox Logic constraints
+        function checkCbLogic(el) {
+            const cbs = Array.from(document.querySelectorAll('.row-cb:checked'));
+            if (!cbs.length) return;
+            const baseStatus = cbs[0].dataset.status;
+            if (el.dataset.status !== baseStatus) {
+                alert("Pass and Fail students cannot be selected simultaneously.");
+                el.checked = false;
+            }
+        }
+
+        function toggleAll(master) {
+            const cbs = document.querySelectorAll('.row-cb');
+            let target = null;
+            cbs.forEach(cb => {
+                if (master.checked) {
+                    if (!target) target = cb.dataset.status;
+                    cb.checked = (cb.dataset.status === target);
+                } else cb.checked = false;
+            });
+        }
+
+        // Move Data
+        function moveData() {
+            document.querySelectorAll('.row-cb:checked').forEach(cb => {
+                const idx = dbData.findIndex(x => x.id == cb.dataset.id);
+                if (idx > -1) movedData.push(dbData.splice(idx, 1)[0]);
+            });
+            document.getElementById('selectAll').checked = false;
+            
+            const mb = document.getElementById('movedBody');
+            mb.innerHTML = movedData.map(r => `<tr><td class="p-2 border">${r.name}</td><td class="p-2 border">${r.semester}</td><td class="p-2 border">${r.subject}</td><td class="p-2 border">${r.status}</td></tr>`).join('');
+            renderTable();
+        }
+
+        // PDF Generation
+        function exportPDF() {
+            const doc = new window.jspdf.jsPDF();
+            doc.text("Student Mark Sheet", 14, 15);
+            const headers = [["Name", "DOB", "Semester", "Subject", "Marks", "Out Of", "%", "Status"]];
+            const data = dbData.map(r => [r.name, r.dob, r.semester, r.subject, r.marks, r.out_of, r.percentage+'%', r.status]);
+            doc.autoTable({head: headers, body: data, startY: 20});
+            doc.save("Student_Mark_Sheet.pdf");
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
