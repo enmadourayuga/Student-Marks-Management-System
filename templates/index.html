@@ -1,97 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <title>Student Marks Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to support class-based dark mode switching
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body class="bg-gray-50 p-6 text-gray-800">
+<body class="bg-gray-50 text-gray-800 p-6 transition-colors duration-200 dark:bg-gray-900 dark:text-gray-100">
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <div class="bg-white p-6 rounded shadow">
+        <div class="flex justify-between items-center bg-white p-4 rounded shadow dark:bg-gray-800 dark:shadow-none">
+            <h1 class="text-2xl font-bold tracking-tight">Academic Panel</h1>
+            <button id="themeBtn" onclick="toggleTheme()" class="bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded transition-colors dark:bg-gray-700 dark:text-gray-100 hover:opacity-90">
+                ☀️ Light Mode
+            </button>
+        </div>
+        
+        <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
             <h2 class="text-xl font-bold mb-4">Manage Student Marks</h2>
             <form id="marksForm" class="grid grid-cols-3 gap-4">
                 <input type="hidden" id="recordId">
-                <input type="text" id="name" placeholder="Student Name" required class="border p-2 rounded">
-                <input type="date" id="dob" required class="border p-2 rounded">
-                <input type="text" id="semester" placeholder="Semester" required class="border p-2 rounded">
-                <select id="subject" required class="border p-2 rounded">
+                <input type="text" id="name" placeholder="Student Name" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="date" id="dob" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="text" id="semester" placeholder="Semester" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <select id="subject" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     <option value="">Select Subject</option>
-                    <option value="Mathematics">Mathematics</option>
+                    <option value="Probability">Probability</option>
                     <option value="Physics">Physics</option>
-                    <option value="Computer Science">Computer Science</option>
+                    <option value="Python">Python</option>
                 </select>
-                <input type="number" id="marks" placeholder="Marks" required class="border p-2 rounded">
-                <input type="number" id="out_of" placeholder="Out Of Marks" required class="border p-2 rounded">
+                <input type="number" id="marks" placeholder="Marks" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <input type="number" id="out_of" placeholder="Out Of Marks" required class="border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                 <div class="col-span-3">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold">Save Record</button>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700">Save Record</button>
                 </div>
             </form>
         </div>
 
-        <div class="bg-white p-4 rounded shadow flex gap-4">
-            <input type="text" id="f_name" placeholder="Filter Name" class="border p-2 rounded w-full" oninput="renderTable()">
-            <input type="text" id="f_sem" placeholder="Filter Semester" class="border p-2 rounded w-full" oninput="renderTable()">
-            <input type="text" id="f_sub" placeholder="Filter Subject" class="border p-2 rounded w-full" oninput="renderTable()">
-            <select id="f_status" class="border p-2 rounded w-full" onchange="renderTable()">
+        <div class="bg-white p-4 rounded shadow flex gap-4 dark:bg-gray-800">
+            <input type="text" id="f_name" placeholder="Filter Name" class="border p-2 rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white" oninput="renderTable()">
+            <input type="text" id="f_sem" placeholder="Filter Semester" class="border p-2 rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white" oninput="renderTable()">
+            <input type="text" id="f_sub" placeholder="Filter Subject" class="border p-2 rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white" oninput="renderTable()">
+            <select id="f_status" class="border p-2 rounded w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="renderTable()">
                 <option value="All">All Status</option>
                 <option value="Pass">Pass</option>
                 <option value="Fail">Fail</option>
             </select>
         </div>
 
-        <div class="bg-white p-6 rounded shadow">
+        <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
             <div class="flex justify-between mb-4">
                 <h2 class="text-xl font-bold">Main Report</h2>
                 <div>
-                    <button onclick="moveData()" class="bg-indigo-600 text-white px-4 py-2 rounded mr-2">Move Selected</button>
-                    <button onclick="exportPDF()" class="bg-red-600 text-white px-4 py-2 rounded">Export PDF</button>
+                    <button onclick="moveData()" class="bg-indigo-600 text-white px-4 py-2 rounded mr-2 hover:bg-indigo-700">Move Selected</button>
+                    <button onclick="exportPDF()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Export PDF</button>
                 </div>
             </div>
-            <table class="w-full border text-sm text-left">
-                <thead class="bg-gray-100">
+            <table class="w-full border text-sm text-left dark:border-gray-700">
+                <thead class="bg-gray-100 dark:bg-gray-700">
                     <tr>
-                        <th class="p-2 border"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('name')">Name ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('dob')">DOB ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('semester')">Semester ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('subject')">Subject ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('marks')">Marks ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('out_of')">Out Of ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('percentage')">% ↕</th>
-                        <th class="p-2 border cursor-pointer" onclick="setSort('status')">Status ↕</th>
-                        <th class="p-2 border">Actions</th>
+                        <th class="p-2 border dark:border-gray-600"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('name')">Name ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('dob')">DOB ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('semester')">Semester ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('subject')">Subject ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('marks')">Marks ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('out_of')">Out Of ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('percentage')">% ↕</th>
+                        <th class="p-2 border cursor-pointer dark:border-gray-600" onclick="setSort('status')">Status ↕</th>
+                        <th class="p-2 border dark:border-gray-600">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-                <tfoot class="bg-gray-100 font-bold">
+                <tfoot class="bg-gray-100 font-bold dark:bg-gray-700">
                     <tr>
-                        <td colspan="5" class="p-2 border text-right">Grand Total:</td>
-                        <td id="tMarks" class="p-2 border">0</td>
-                        <td id="tOutOf" class="p-2 border">0</td>
-                        <td id="tPct" colspan="3" class="p-2 border">0%</td>
+                        <td colspan="5" class="p-2 border text-right dark:border-gray-600">Grand Total:</td>
+                        <td id="tMarks" class="p-2 border dark:border-gray-600">0</td>
+                        <td id="tOutOf" class="p-2 border dark:border-gray-600">0</td>
+                        <td id="tPct" colspan="3" class="p-2 border dark:border-gray-600">0%</td>
                     </tr>
                 </tfoot>
             </table>
             
             <div class="flex justify-between items-center mt-4">
-                <button onclick="changePage(-1)" class="bg-gray-200 px-4 py-1 rounded">Previous</button>
+                <button onclick="changePage(-1)" class="bg-gray-200 text-gray-800 px-4 py-1 rounded dark:bg-gray-700 dark:text-gray-200">Previous</button>
                 <span id="pageIndicator">Page 1</span>
-                <button onclick="changePage(1)" class="bg-gray-200 px-4 py-1 rounded">Next</button>
+                <button onclick="changePage(1)" class="bg-gray-200 text-gray-800 px-4 py-1 rounded dark:bg-gray-700 dark:text-gray-200">Next</button>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded shadow">
+        <div class="bg-white p-6 rounded shadow dark:bg-gray-800">
             <h2 class="text-xl font-bold mb-4">Isolated Records</h2>
-            <table class="w-full border text-sm text-left">
-                <thead class="bg-gray-100">
+            <table class="w-full border text-sm text-left dark:border-gray-700">
+                <thead class="bg-gray-100 dark:bg-gray-700">
                     <tr>
-                        <th class="p-2 border">Name</th>
-                        <th class="p-2 border">Semester</th>
-                        <th class="p-2 border">Subject</th>
-                        <th class="p-2 border">Status</th>
+                        <th class="p-2 border dark:border-gray-600">Name</th>
+                        <th class="p-2 border dark:border-gray-600">Semester</th>
+                        <th class="p-2 border dark:border-gray-600">Subject</th>
+                        <th class="p-2 border dark:border-gray-600">Status</th>
                     </tr>
                 </thead>
                 <tbody id="movedBody"></tbody>
@@ -106,7 +119,21 @@
         let page = 1;
         const perPage = 5;
 
-        // Fetch & Render
+        // Theme Toggle Logic Engine
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const themeBtn = document.getElementById('themeBtn');
+            
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                themeBtn.innerText = '🌙 Dark Mode';
+            } else {
+                htmlElement.classList.add('dark');
+                themeBtn.innerText = '☀️ Light Mode';
+            }
+        }
+
+        // Fetch & Render Engine
         async function loadData() {
             const res = await fetch('/api/marks');
             dbData = await res.json();
@@ -129,14 +156,12 @@
                 });
             }
 
-            // Totals
             let tM = 0, tO = 0;
             filtered.forEach(d => { tM += d.marks; tO += d.out_of; });
             document.getElementById('tMarks').innerText = tM;
             document.getElementById('tOutOf').innerText = tO;
             document.getElementById('tPct').innerText = tO ? ((tM/tO)*100).toFixed(2) + '%' : '0%';
 
-            // Pagination
             const maxPage = Math.ceil(filtered.length / perPage) || 1;
             if (page > maxPage) page = maxPage;
             document.getElementById('pageIndicator').innerText = `Page ${page} of ${maxPage}`;
@@ -146,25 +171,24 @@
             tbody.innerHTML = '';
             paged.forEach(row => {
                 tbody.innerHTML += `
-                    <tr>
-                        <td class="p-2 border"><input type="checkbox" class="row-cb" data-id="${row.id}" data-status="${row.status}" onchange="checkCbLogic(this)"></td>
-                        <td class="p-2 border">${row.name}</td>
-                        <td class="p-2 border">${row.dob}</td>
-                        <td class="p-2 border">${row.semester}</td>
-                        <td class="p-2 border">${row.subject}</td>
-                        <td class="p-2 border">${row.marks}</td>
-                        <td class="p-2 border">${row.out_of}</td>
-                        <td class="p-2 border">${row.percentage}%</td>
-                        <td class="p-2 border font-bold ${row.status === 'Pass' ? 'text-green-600' : 'text-red-600'}">${row.status}</td>
-                        <td class="p-2 border space-x-2">
-                            <button onclick="editRow(${row.id})" class="text-blue-600">Edit</button>
-                            <button onclick="deleteRow(${row.id})" class="text-red-600">Delete</button>
+                    <tr class="border-b dark:border-gray-700">
+                        <td class="p-2 border dark:border-gray-700"><input type="checkbox" class="row-cb" data-id="${row.id}" data-status="${row.status}" onchange="checkCbLogic(this)"></td>
+                        <td class="p-2 border dark:border-gray-700">${row.name}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.dob}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.semester}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.subject}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.marks}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.out_of}</td>
+                        <td class="p-2 border dark:border-gray-700">${row.percentage}%</td>
+                        <td class="p-2 border dark:border-gray-700 font-bold ${row.status === 'Pass' ? 'text-green-500' : 'text-red-500'}">${row.status}</td>
+                        <td class="p-2 border dark:border-gray-700 space-x-2">
+                            <button onclick="editRow(${row.id})" class="text-blue-400 hover:underline">Edit</button>
+                            <button onclick="deleteRow(${row.id})" class="text-red-400 hover:underline">Delete</button>
                         </td>
                     </tr>`;
             });
         }
 
-        // Form Submit
         document.getElementById('marksForm').onsubmit = async (e) => {
             e.preventDefault();
             const payload = {
@@ -185,7 +209,6 @@
             else { document.getElementById('marksForm').reset(); loadData(); }
         };
 
-        // Actions
         async function deleteRow(id) {
             if (confirm("Delete this record?")) {
                 await fetch(`/api/marks/${id}`, {method: 'DELETE'});
@@ -210,12 +233,14 @@
             renderTable();
         }
 
-        // Checkbox Logic constraints
         function checkCbLogic(el) {
-            const cbs = Array.from(document.querySelectorAll('.row-cb:checked'));
-            if (!cbs.length) return;
-            const baseStatus = cbs[0].dataset.status;
-            if (el.dataset.status !== baseStatus) {
+            const checkedBoxes = Array.from(document.querySelectorAll('.row-cb:checked'));
+            if (checkedBoxes.length <= 1) return;
+            
+            const statuses = checkedBoxes.map(cb => cb.dataset.status);
+            const hasMixedStatuses = statuses.includes('Pass') && statuses.includes('Fail');
+            
+            if (hasMixedStatuses) {
                 alert("Pass and Fail students cannot be selected simultaneously.");
                 el.checked = false;
             }
@@ -223,29 +248,45 @@
 
         function toggleAll(master) {
             const cbs = document.querySelectorAll('.row-cb');
-            let target = null;
+            if (!master.checked) {
+                cbs.forEach(cb => cb.checked = false);
+                return;
+            }
+            if (cbs.length === 0) return;
+            const targetStatus = cbs[0].dataset.status;
             cbs.forEach(cb => {
-                if (master.checked) {
-                    if (!target) target = cb.dataset.status;
-                    cb.checked = (cb.dataset.status === target);
-                } else cb.checked = false;
+                if (cb.dataset.status === targetStatus) cb.checked = true;
+                else cb.checked = false; 
             });
         }
 
-        // Move Data
         function moveData() {
-            document.querySelectorAll('.row-cb:checked').forEach(cb => {
+            const checkedBoxes = Array.from(document.querySelectorAll('.row-cb:checked'));
+            if (checkedBoxes.length === 0) return;
+
+            const statuses = checkedBoxes.map(cb => cb.dataset.status);
+            if (statuses.includes('Pass') && statuses.includes('Fail')) {
+                alert("Transaction Aborted: Mixed status categories detected.");
+                return;
+            }
+
+            checkedBoxes.forEach(cb => {
                 const idx = dbData.findIndex(x => x.id == cb.dataset.id);
                 if (idx > -1) movedData.push(dbData.splice(idx, 1)[0]);
             });
             document.getElementById('selectAll').checked = false;
             
             const mb = document.getElementById('movedBody');
-            mb.innerHTML = movedData.map(r => `<tr><td class="p-2 border">${r.name}</td><td class="p-2 border">${r.semester}</td><td class="p-2 border">${r.subject}</td><td class="p-2 border">${r.status}</td></tr>`).join('');
+            mb.innerHTML = movedData.map(r => `
+                <tr class="border-b dark:border-gray-700">
+                    <td class="p-2 border dark:border-gray-700">${r.name}</td>
+                    <td class="p-2 border dark:border-gray-700">${r.semester}</td>
+                    <td class="p-2 border dark:border-gray-700">${r.subject}</td>
+                    <td class="p-2 border dark:border-gray-700 font-bold ${r.status === 'Pass' ? 'text-green-500' : 'text-red-500'}">${r.status}</td>
+                </tr>`).join('');
             renderTable();
         }
 
-        // PDF Generation
         function exportPDF() {
             const doc = new window.jspdf.jsPDF();
             doc.text("Student Mark Sheet", 14, 15);
