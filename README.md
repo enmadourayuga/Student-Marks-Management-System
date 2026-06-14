@@ -34,7 +34,7 @@ A lightweight, high-efficiency full-stack web application designed to manage, ev
 * **Client Scripts**: Native JavaScript (ES6+), jsPDF, jsPDF-AutoTable
 
 ---
-###📈 Future Architectural Improvements
+### 📈 Future Architectural Improvements
 * **Unique Student Identification Keys**: Implement a mandatory student_id primary/foreign key data constraint rather than relying strictly on text-string matching names, preventing data overlap if two distinct students share an identical name.
 * **Relational Database Schema Design**: Separate data records into distinct, normalized database tables (Students, Semesters, Subjects, and Marks) to optimize query indexing and eliminate flat-file data redundancy.
 * **Data Persistence for Relocated Records**: Modify the schema constraints so that records shifted to the secondary isolated table retain their state within a database table column rather than resetting upon browser refreshes.
